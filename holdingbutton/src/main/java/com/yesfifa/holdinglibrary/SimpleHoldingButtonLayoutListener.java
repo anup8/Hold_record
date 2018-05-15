@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
-public class SimpleHoldingDrawableListener implements HoldingDrawableListener {
+public class SimpleHoldingButtonLayoutListener implements HoldingButtonLayoutListener {
 
     @Override
     public void onBeforeExpand() {
-
-    }
-
-    @Override
-    public void onBeforeCollapse() {
 
     }
 
@@ -34,7 +29,17 @@ public class SimpleHoldingDrawableListener implements HoldingDrawableListener {
     }
 
     @Override
-    public void onCollapse() {
+    public void onBeforeCollapse() {
+
+    }
+
+    @Override
+    public void onCollapse(boolean isCancel) {
+
+    }
+
+    @Override
+    public void onOffsetChanged(float offset, boolean isCancel) {
 
     }
 }

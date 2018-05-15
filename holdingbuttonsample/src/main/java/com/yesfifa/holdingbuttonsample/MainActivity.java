@@ -14,34 +14,61 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdingbuttonsample;
+package com.yesfifa.holdingbuttonsample;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dewarder.holdinglibrary.HoldingButtonLayout;
-import com.dewarder.holdinglibrary.HoldingButtonLayoutListener;
+import com.yesfifa.holdinglibrary.HoldingButtonLayout;
+import com.yesfifa.holdinglibrary.HoldingButtonLayoutListener;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements HoldingButtonLayoutListener {
+public class MainActivity extends AppCompatActivity implements HoldingButtonLayoutListener,MediaPlayer.OnCompletionListener{
 
     private static final DateFormat mFormatter = new SimpleDateFormat("mm:ss:SS");
     private static final float SLIDE_TO_CANCEL_ALPHA_MULTIPLIER = 2.5f;
     private static final long TIME_INVALIDATION_FREQUENCY = 50L;
 
+
+    // Requesting permission to RECORD_AUDIO
+    private boolean permissionToRecordAccepted = false;
+    private String [] permissions = {Manifest.permission.RECORD_AUDIO};
+
+
+
+    private static final String LOG_TAG = "AudioRecordTest";
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    private static String mFileName = null;
+
+    private MediaPlayer mPlayer = null;
+    private MediaRecorder mRecorder = null;
+
+
+    private Button playButton;
+
     private HoldingButtonLayout mHoldingButtonLayout;
     private TextView mTime;
-    private EditText mInput;
+   // private EditText mInput;
+    private TextView mBlank;
     private View mSlideToCancel;
 
     private int mAnimationDuration;
@@ -55,21 +82,40 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mFileName = getExternalCacheDir().getAbsolutePath();
+        mFileName += "/audiorecordtest.3gp";
+
         setContentView(R.layout.activity_main);
+        playButton=(Button)findViewById(R.id.playBtn);
+
+        playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startPlaying();
+            }
+        });
 
         mHoldingButtonLayout = findViewById(R.id.input_holder);
         mHoldingButtonLayout.addListener(this);
 
         mTime = findViewById(R.id.time);
-        mInput = findViewById(R.id.input);
+       // mInput = findViewById(R.id.input);
+        mBlank = findViewById(R.id.blank);
         mSlideToCancel = findViewById(R.id.slide_to_cancel);
 
         mAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        if (mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+        }
     }
 
     @Override
     public void onBeforeExpand() {
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+
         cancelAllAnimations();
+
 
         mSlideToCancel.setTranslationX(0f);
         mSlideToCancel.setAlpha(0f);
@@ -77,11 +123,11 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
         mSlideToCancelAnimator = mSlideToCancel.animate().alpha(1f).setDuration(mAnimationDuration);
         mSlideToCancelAnimator.start();
 
-        mInputAnimator = mInput.animate().alpha(0f).setDuration(mAnimationDuration);
+        mInputAnimator = mBlank.animate().alpha(0f).setDuration(mAnimationDuration);
         mInputAnimator.setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mInput.setVisibility(View.INVISIBLE);
+                mBlank.setVisibility(View.INVISIBLE);
                 mInputAnimator.setListener(null);
             }
         });
@@ -96,8 +142,21 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if (!permissionToRecordAccepted ) finish();
+
+    }
+
+    @Override
     public void onExpand() {
         mStartTime = System.currentTimeMillis();
+        startRecording();
         invalidateTimer();
     }
 
@@ -115,9 +174,9 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
         });
         mSlideToCancelAnimator.start();
 
-        mInput.setAlpha(0f);
-        mInput.setVisibility(View.VISIBLE);
-        mInputAnimator = mInput.animate().alpha(1f).setDuration(mAnimationDuration);
+        mBlank.setAlpha(0f);
+        mBlank.setVisibility(View.VISIBLE);
+        mInputAnimator = mBlank.animate().alpha(1f).setDuration(mAnimationDuration);
         mInputAnimator.start();
 
         mTimeAnimator = mTime.animate().translationY(mTime.getHeight()).alpha(0f).setDuration(mAnimationDuration);
@@ -137,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
         if (isCancel) {
             Toast.makeText(this, "Action canceled! Time " + getFormattedTime(), Toast.LENGTH_SHORT).show();
         } else {
+            stopRecording();
             Toast.makeText(this, "Action submitted! Time " + getFormattedTime(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -181,5 +241,47 @@ public class MainActivity extends AppCompatActivity implements HoldingButtonLayo
 
     private String getFormattedTime() {
         return mFormatter.format(new Date(System.currentTimeMillis() - mStartTime));
+    }
+
+    private void startRecording() {
+        mRecorder = new MediaRecorder();
+        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mRecorder.setOutputFile(mFileName);
+        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+        try {
+            mRecorder.prepare();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+
+        mRecorder.start();
+    }
+
+    private void stopRecording() {
+        mRecorder.stop();
+        mRecorder.release();
+        mRecorder = null;
+    }
+
+    private void startPlaying() {
+        mPlayer = new MediaPlayer();
+        mPlayer.setOnCompletionListener(this);
+        try {
+            mPlayer.setDataSource(mFileName);
+            mPlayer.prepare();
+            mPlayer.start();
+            //updateProgressBar();
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "prepare() failed");
+        }
+
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+        mPlayer.stop();
+        mPlayer.release();
     }
 }

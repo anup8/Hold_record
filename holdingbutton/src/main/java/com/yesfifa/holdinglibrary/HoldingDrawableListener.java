@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
-public interface HoldingButtonLayoutListener {
+public interface HoldingDrawableListener {
 
     void onBeforeExpand();
 
-    void onExpand();
-
     void onBeforeCollapse();
 
-    void onCollapse(boolean isCancel);
+    void onExpand();
 
-    void onOffsetChanged(float offset, boolean isCancel);
+    void onCollapse();
 }

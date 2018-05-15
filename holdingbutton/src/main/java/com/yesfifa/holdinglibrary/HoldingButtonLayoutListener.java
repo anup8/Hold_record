@@ -14,32 +14,17 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
-public class SimpleHoldingButtonLayoutListener implements HoldingButtonLayoutListener {
+public interface HoldingButtonLayoutListener {
 
-    @Override
-    public void onBeforeExpand() {
+    void onBeforeExpand();
 
-    }
+    void onExpand();
 
-    @Override
-    public void onExpand() {
+    void onBeforeCollapse();
 
-    }
+    void onCollapse(boolean isCancel);
 
-    @Override
-    public void onBeforeCollapse() {
-
-    }
-
-    @Override
-    public void onCollapse(boolean isCancel) {
-
-    }
-
-    @Override
-    public void onOffsetChanged(float offset, boolean isCancel) {
-
-    }
+    void onOffsetChanged(float offset, boolean isCancel);
 }

@@ -4,7 +4,7 @@ android {
     compileSdkVersion sdk_version
 
     defaultConfig {
-        applicationId "com.dewarder.holdingbuttonsample"
+        applicationId "com.yesfifa.holdingbuttonsample"
         minSdkVersion min_sdk_version
         targetSdkVersion sdk_version
         versionCode 1

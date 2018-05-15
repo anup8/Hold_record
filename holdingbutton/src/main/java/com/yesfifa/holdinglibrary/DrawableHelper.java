@@ -1,4 +1,4 @@
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
 import android.content.Context;
 import android.graphics.Bitmap;

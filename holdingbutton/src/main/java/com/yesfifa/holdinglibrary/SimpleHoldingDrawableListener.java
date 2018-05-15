@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
-public interface HoldingDrawableListener {
+public class SimpleHoldingDrawableListener implements HoldingDrawableListener {
 
-    void onBeforeExpand();
+    @Override
+    public void onBeforeExpand() {
 
-    void onBeforeCollapse();
+    }
 
-    void onExpand();
+    @Override
+    public void onBeforeCollapse() {
 
-    void onCollapse();
+    }
+
+    @Override
+    public void onExpand() {
+
+    }
+
+    @Override
+    public void onCollapse() {
+
+    }
 }

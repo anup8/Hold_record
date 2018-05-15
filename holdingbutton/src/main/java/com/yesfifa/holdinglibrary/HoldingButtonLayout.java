@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.dewarder.holdinglibrary;
+package com.yesfifa.holdinglibrary;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -43,7 +43,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class HoldingButtonLayout extends FrameLayout {
 
-    private static final float DEFAULT_CANCEL_OFFSET = 0.3f;
+    private static final float DEFAULT_CANCEL_OFFSET = 0.35f;
     private static final float COLLAPSING_SCALE_Y_VALUE_START = 0.8f;
     private static final float COLLAPSING_SCALE_Y_VALUE_END = 1f;
     private static final float COLLAPSING_ALPHA_VALUE_START = 0f;
@@ -178,8 +178,8 @@ public class HoldingButtonLayout extends FrameLayout {
             }
 
             if (array.hasValue(R.styleable.HoldingButtonLayout_hbl_direction)) {
-                int directionFlag = array.getInt(R.styleable.HoldingButtonLayout_hbl_direction, -1);
-                if (directionFlag != -1) {
+                int directionFlag = array.getInt(R.styleable.HoldingButtonLayout_hbl_direction, 1);
+                if (directionFlag != 1) {
                     mDirection = DirectionHelper.adaptSlidingDirection(this, Direction.fromFlag(directionFlag));
                 }
             }
